@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit
  */
 abstract class GrpcServer(
     val port: Int,
+    val maxInboundMessageSize: Int = 0,
     sslContextConfig: SslContextConfig? = null,
     interceptors: List<ServerInterceptor> = emptyList()
 ) {
@@ -43,6 +44,9 @@ abstract class GrpcServer(
     protected val server: Server by lazy { serverBuilder.build() }
 
     init {
+        if (maxInboundMessageSize > 0)
+            serverBuilder.maxInboundMessageSize(maxInboundMessageSize)
+
         createSslContext(sslContextConfig)?.let {
             serverBuilder.sslContext(it)
         }
