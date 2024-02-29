@@ -37,7 +37,10 @@ class JWTAuthProvider(private val tokenAuthenticator: TokenAuthenticator) : Auth
             return
         }
 
-        resp.token?.let { resultHandler?.handle(Future.succeededFuture(User.fromToken(it.token))) } ?: resultHandler?.handle(
+        resp.token?.let {
+            val user = User.create(JsonObject().put("access_token", it.token), JsonObject().put("token", it))
+            resultHandler?.handle(Future.succeededFuture(user))
+        } ?: resultHandler?.handle(
             Future.failedFuture("Token was missing on successful auth - this is a bug.")
         )
     }

@@ -9,6 +9,8 @@
 
 package com.zepben.auth.server
 
+import com.auth0.jwt.interfaces.DecodedJWT
+import com.zepben.auth.common.StatusCode
 import com.zepben.auth.server.vertx.JWTAuthProvider
 import io.vertx.core.AsyncResult
 import io.vertx.core.Future
@@ -17,8 +19,6 @@ import io.vertx.core.http.HttpHeaders
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.User
-import io.vertx.ext.auth.authorization.RoleBasedAuthorization
-import io.vertx.ext.auth.authorization.WildcardPermissionBasedAuthorization
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.AuthenticationHandler
 import io.vertx.ext.web.handler.HttpException
@@ -52,10 +52,9 @@ class Auth0AuthHandler(
             return
         }
         for (authority in authorities) {
-            val authorization =
-                if (authority.startsWith("role:")) RoleBasedAuthorization.create(authority.substring(5))
-                else WildcardPermissionBasedAuthorization.create(authority)
-            if (!authorization.match(user)) {
+            val token = user.attributes().getValue("token") as DecodedJWT
+            val resp = JWTAuthoriser.authorise(token, authority)
+            if (resp.statusCode !== StatusCode.OK) {
                 handler.handle(Future.failedFuture(HttpException(403, "Could not authorise all requested permissions. This is likely a bug.")))
                 return
             }

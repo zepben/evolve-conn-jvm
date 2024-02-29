@@ -12,7 +12,8 @@
 * None.
 
 ### Fixes
-* None.
+* After the move to vertx 4, we dropped using our own User module that ran Jwt token verifications. This fixes the 
+issue by storing the token in the Vertx User object and verifying it separately.
 
 ### Notes
 * None.
